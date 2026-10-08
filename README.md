@@ -103,8 +103,10 @@ then:
 hermes mcp add adaption --url https://api.prod.adaptionlabs.ai/api/v1/mcp --auth header
 ```
 
-Paste the API key when Hermes asks for a bearer token. Hermes stores it in your
-profile's `.env`, not in `config.yaml`.
+Answer yes when Hermes asks whether the server requires authentication, then
+paste the API key when it asks for a bearer token. Hermes stores it in your
+profile's `.env` as `MCP_ADAPTION_API_KEY`, not in `config.yaml`. To skip the
+prompt, set `MCP_ADAPTION_API_KEY` in that `.env` before running the command.
 
 ### Why the MCP server is not bundled
 
@@ -169,6 +171,18 @@ Re-run `rsync` and start a new session after every change.
 > "Generate 1000 customer service examples using Invent"
 
 > "Check the status of my training job"
+
+## What this plugin does on your machine
+
+- The plugin contains only skills, which are Markdown instructions. It ships
+  no code, hooks, shell commands, or background processes.
+- The Adaption MCP tools send requests to `api.prod.adaptionlabs.ai` with your
+  OAuth token or API key. Datasets you import or generate are processed by
+  Adaption.
+- Adaptation, augmentation, translation, localization, dataset generation, and
+  AutoScientist training runs spend Adaption credits. The skills tell Hermes
+  to request a cost estimate before launching. This is guidance in the skill
+  instructions, not a check enforced by Hermes.
 
 ## Requirements
 
