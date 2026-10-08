@@ -14,7 +14,38 @@ The setup has two parts:
 
 ## Installation
 
-### 1. Add the Adaption MCP server
+### Hermes Desktop
+
+1. **Add the MCP server.** Open **Capabilities → MCP** and add a server:
+   - Name: `adaption`
+   - Type: **Streamable HTTP**
+   - URL: `https://api.prod.adaptionlabs.ai/api/v1/mcp`
+   - Auth: **OAuth**
+
+   Or open this link, which pre-fills the same server for you to confirm:
+
+   ```
+   hermes://mcp/install?name=adaption&config=eyJ1cmwiOiJodHRwczovL2FwaS5wcm9kLmFkYXB0aW9ubGFicy5haS9hcGkvdjEvbWNwIiwiYXV0aCI6Im9hdXRoIn0
+   ```
+
+2. **Sign in.** Click **Authenticate** on the `adaption` server, then
+   **Open in browser**. Choose the organization and click **Authorize**.
+3. **Install the skills.** Open **Capabilities → Plugins → Install from Git**,
+   enter `adaptionlabs/adaption-hermes-plugin`, keep the agent plugin checked,
+   and confirm. Then enable **adaption** in the plugins list.
+
+   Or open:
+
+   ```
+   hermes://plugin/install?repo=adaptionlabs/adaption-hermes-plugin&enable=1
+   ```
+
+Both links only open a confirmation dialog in Hermes Desktop; nothing is
+installed until you confirm.
+
+### Hermes CLI
+
+#### 1. Add the Adaption MCP server
 
 ```bash
 hermes mcp add adaption --url https://api.prod.adaptionlabs.ai/api/v1/mcp --auth oauth
@@ -33,7 +64,7 @@ hermes mcp login adaption
 On a remote host, follow Hermes' guide for OAuth over SSH, or use an API key
 as described below.
 
-### 2. Install the skills
+#### 2. Install the skills
 
 ```bash
 hermes plugins install adaptionlabs/adaption-hermes-plugin --no-enable
@@ -62,8 +93,8 @@ profile's `.env`, not in `config.yaml`.
 Agent Plugins packages can declare MCP servers in `mcp.json`, but that format
 has no way to request OAuth, and Hermes only signs in to servers configured
 with `auth: oauth`. A bundled server would connect without credentials and
-fail. Adding the server with `hermes mcp add` gives Hermes the OAuth setting it
-needs.
+fail. Adding the server in Desktop or with `hermes mcp add` gives Hermes the
+OAuth setting it needs.
 
 ### Local development
 
