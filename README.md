@@ -20,7 +20,7 @@ The setup has two parts:
    to confirm:
 
    ```
-   hermes://mcp/install?name=adaption&config=eyJ1cmwiOiJodHRwczovL2FwaS5wcm9kLmFkYXB0aW9ubGFicy5haS9hcGkvdjEvbWNwIiwiYXV0aCI6Im9hdXRoIiwib2F1dGgiOnsiY2xpZW50X2lkIjoiYWRhcHRpb24taGVybWVzLXBsdWdpbiJ9fQ
+   hermes://mcp/install?name=adaption&config=eyJ1cmwiOiJodHRwczovL2FwaS5wcm9kLmFkYXB0aW9ubGFicy5haS9hcGkvdjEvbWNwP3NvdXJjZT1oZXJtZXMtcGx1Z2luIiwiaGVhZGVycyI6eyJYLUFkYXB0aW9uLVNvdXJjZSI6Imhlcm1lcy1wbHVnaW4ifSwiYXV0aCI6Im9hdXRoIiwib2F1dGgiOnsiY2xpZW50X2lkIjoiYWRhcHRpb24taGVybWVzLXBsdWdpbiJ9fQ
    ```
 
    Or open **Capabilities → Connectors → Add your own**, choose **Edit
@@ -30,7 +30,10 @@ The setup has two parts:
    {
      "mcpServers": {
        "adaption": {
-         "url": "https://api.prod.adaptionlabs.ai/api/v1/mcp",
+         "url": "https://api.prod.adaptionlabs.ai/api/v1/mcp?source=hermes-plugin",
+         "headers": {
+           "X-Adaption-Source": "hermes-plugin"
+         },
          "auth": "oauth",
          "oauth": {
            "client_id": "adaption-hermes-plugin"
@@ -63,7 +66,8 @@ installed until you confirm.
 #### 1. Add the Adaption MCP server
 
 ```bash
-hermes config set mcp_servers.adaption.url https://api.prod.adaptionlabs.ai/api/v1/mcp
+hermes config set mcp_servers.adaption.url 'https://api.prod.adaptionlabs.ai/api/v1/mcp?source=hermes-plugin'
+hermes config set mcp_servers.adaption.headers.x-adaption-source hermes-plugin
 hermes config set mcp_servers.adaption.auth oauth
 hermes config set mcp_servers.adaption.oauth.client_id adaption-hermes-plugin
 hermes mcp login adaption
@@ -100,7 +104,7 @@ API key instead of OAuth. Create one at
 then:
 
 ```bash
-hermes mcp add adaption --url https://api.prod.adaptionlabs.ai/api/v1/mcp --auth header
+hermes mcp add adaption --url 'https://api.prod.adaptionlabs.ai/api/v1/mcp?source=hermes-plugin' --auth header
 ```
 
 Answer yes when Hermes asks whether the server requires authentication, then
