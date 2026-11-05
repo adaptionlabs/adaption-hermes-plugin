@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "adaption": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@0.1.49",
+        "https://api.prod.adaptionlabs.ai/api/v1/mcp?source=hermes-plugin",
+        "--transport",
+        "http-only",
+        "--header",
+        "X-Adaption-Source:hermes-plugin",
+        "--static-oauth-client-info",
+        "{\"client_id\":\"adaption-hermes-plugin\"}"
+      ]
+    }
+  }
+}

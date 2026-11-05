@@ -4,102 +4,88 @@ Connect [Hermes Agent](https://hermes-agent.nousresearch.com) to
 [Adaption](https://adaptionlabs.ai) for dataset management, fine-tuning, and
 AutoScientist workflows.
 
-The setup has two parts:
+The plugin is an [Agent Plugins](https://agent-plugins.org) package, which
+Hermes installs natively. It contains:
 
-- **The Adaption MCP server** gives Hermes the tools. You add it once and sign
-  in with your Adaption account in the browser.
-- **This plugin** adds three skills that teach Hermes how to use those tools.
-  It is an [Agent Plugins](https://agent-plugins.org) package, which Hermes
-  installs natively.
+- **The Adaption MCP server**, which gives Hermes the tools. You sign in with
+  your Adaption account in the browser the first time it starts.
+- **Three skills** that teach Hermes how to use those tools.
 
 ## Installation
 
+The plugin connects through [`mcp-remote`](https://www.npmjs.com/package/mcp-remote),
+so it needs Node.js 20.18.1 or later and npm on your `PATH`.
+
 ### Hermes Desktop
 
-1. **Add the MCP server.** Open this link, which pre-fills the server for you
-   to confirm:
+Open **Capabilities → Plugins → Install from Git**, enter
+`adaptionlabs/adaption-hermes-plugin`, keep the agent plugin checked, and
+confirm. Then enable **adaption** in the plugins list.
 
-   ```
-   hermes://mcp/install?name=adaption&config=eyJ1cmwiOiJodHRwczovL2FwaS5wcm9kLmFkYXB0aW9ubGFicy5haS9hcGkvdjEvbWNwP3NvdXJjZT1oZXJtZXMtcGx1Z2luIiwiaGVhZGVycyI6eyJYLUFkYXB0aW9uLVNvdXJjZSI6Imhlcm1lcy1wbHVnaW4ifSwiYXV0aCI6Im9hdXRoIiwib2F1dGgiOnsiY2xpZW50X2lkIjoiYWRhcHRpb24taGVybWVzLXBsdWdpbiJ9fQ
-   ```
+Or open this link, which only opens a confirmation dialog in Hermes Desktop:
 
-   Or open **Capabilities → Connectors → Add your own**, choose **Edit
-   mcp.json**, and add:
-
-   ```json
-   {
-     "mcpServers": {
-       "adaption": {
-         "url": "https://api.prod.adaptionlabs.ai/api/v1/mcp?source=hermes-plugin",
-         "headers": {
-           "X-Adaption-Source": "hermes-plugin"
-         },
-         "auth": "oauth",
-         "oauth": {
-           "client_id": "adaption-hermes-plugin"
-         }
-       }
-     }
-   }
-   ```
-
-   The `oauth` block is required: Adaption does not support dynamic client
-   registration, which Hermes Desktop falls back to without it.
-
-2. **Sign in.** Click **Authenticate** on the `adaption` server, then
-   **Open in browser**. Choose the organization and click **Authorize**.
-3. **Install the skills.** Open **Capabilities → Plugins → Install from Git**,
-   enter `adaptionlabs/adaption-hermes-plugin`, keep the agent plugin checked,
-   and confirm. Then enable **adaption** in the plugins list.
-
-   Or open:
-
-   ```
-   hermes://plugin/install?repo=adaptionlabs/adaption-hermes-plugin&enable=1
-   ```
-
-Both links only open a confirmation dialog in Hermes Desktop; nothing is
-installed until you confirm.
+```
+hermes://plugin/install?repo=adaptionlabs/adaption-hermes-plugin&enable=1
+```
 
 ### Hermes CLI
-
-#### 1. Add the Adaption MCP server
-
-```bash
-hermes config set mcp_servers.adaption.url 'https://api.prod.adaptionlabs.ai/api/v1/mcp?source=hermes-plugin'
-hermes config set mcp_servers.adaption.headers.x-adaption-source hermes-plugin
-hermes config set mcp_servers.adaption.auth oauth
-hermes config set mcp_servers.adaption.oauth.client_id adaption-hermes-plugin
-hermes mcp login adaption
-```
-
-Hermes opens the Adaption sign-in page. Choose the organization and click
-**Authorize**. Tokens are cached under `~/.hermes/mcp-tokens/` and refreshed
-automatically.
-
-To sign in again later, for example after revoking access:
-
-```bash
-hermes mcp login adaption
-```
-
-On a remote host, follow Hermes' guide for OAuth over SSH, or use an API key
-as described below.
-
-#### 2. Install the skills
 
 ```bash
 hermes plugins install adaptionlabs/adaption-hermes-plugin --no-enable
 hermes plugins enable adaption
 ```
 
-Start a new session, or run `/reload-mcp` in a running one, to pick up the
-tools. Run `skills_list` to see the installed Adaption skills.
+### Sign in
+
+Sign in once before your first session:
+
+```bash
+npx -y -p mcp-remote@0.1.49 mcp-remote-client \
+  'https://api.prod.adaptionlabs.ai/api/v1/mcp?source=hermes-plugin' \
+  --transport http-only --header X-Adaption-Source:hermes-plugin \
+  --static-oauth-client-info '{"client_id":"adaption-hermes-plugin"}'
+```
+
+In PowerShell, run it on one line through `npx.cmd`, with the inner quotes
+escaped:
+
+```powershell
+npx.cmd -y -p mcp-remote@0.1.49 mcp-remote-client 'https://api.prod.adaptionlabs.ai/api/v1/mcp?source=hermes-plugin' --transport http-only --header X-Adaption-Source:hermes-plugin --static-oauth-client-info '{\"client_id\":\"adaption-hermes-plugin\"}'
+```
+
+Your browser opens the Adaption sign-in page. Choose the organization and
+click **Authorize**. The token is stored and refreshed, so the plugin's server
+connects without a browser from then on. Start a new session, or run
+`/reload-mcp` in a running one, and run `skills_list` to see the Adaption
+skills.
+
+If you skip this step, the server opens the sign-in page when a session
+starts, but Hermes stops waiting for it after about a minute. If that happens,
+run the command above, then `/reload-mcp`.
+
+To sign out or switch to another organization, delete the stored token and
+sign in again:
+
+```bash
+rm ~/.mcp-auth/mcp-remote-0.1.49/68a9ef231d47fe56f4f1b863f1349fa4_*
+```
+
+### Approvals
+
+The plugin marks the server `untrusted`, so Hermes asks before every tool the
+server does not mark read-only. Adaption marks the tools that list and inspect
+datasets, runs, models, and domains as read-only; they run without asking.
+Hermes asks before import, adaptation, augmentation, translation,
+localization, combining datasets, dataset generation, and AutoScientist runs.
+In cron jobs and other unattended runs, those tools are refused.
+
+Cost estimates use the same tools with `estimate: true`, so Hermes asks before
+the estimate and again before the launch.
 
 ### Headless use with an API key
 
 For CI or a gateway with no one to complete a browser sign-in, use an Adaption
-API key instead of OAuth. Create one at
+API key instead. Create one at
 [adaptionlabs.ai/app/settings](https://adaptionlabs.ai/app/settings?tab=api_keys),
 then:
 
@@ -112,13 +98,38 @@ paste the API key when it asks for a bearer token. Hermes stores it in your
 profile's `.env` as `MCP_ADAPTION_API_KEY`, not in `config.yaml`. To skip the
 prompt, set `MCP_ADAPTION_API_KEY` in that `.env` before running the command.
 
-### Why the MCP server is not bundled
+A server named `adaption` in `config.yaml` replaces the plugin's server,
+including its approval setting, so the skills keep working with the key. To
+keep the approvals described above:
 
-Agent Plugins packages can declare MCP servers in `mcp.json`, but that format
-has no way to request OAuth, and Hermes only signs in to servers configured
-with `auth: oauth`. A bundled server would connect without credentials and
-fail. Adding the server as shown above gives Hermes the OAuth settings it
-needs.
+```bash
+hermes config set mcp_servers.adaption.trust untrusted
+```
+
+### Connecting without Node.js
+
+Hermes can also sign in to the server itself, without `mcp-remote`. Add it to
+`config.yaml`, which replaces the plugin's server:
+
+```bash
+hermes config set mcp_servers.adaption.url 'https://api.prod.adaptionlabs.ai/api/v1/mcp?source=hermes-plugin'
+hermes config set mcp_servers.adaption.headers.x-adaption-source hermes-plugin
+hermes config set mcp_servers.adaption.auth oauth
+hermes config set mcp_servers.adaption.oauth.client_id adaption-hermes-plugin
+hermes mcp login adaption
+```
+
+In Hermes Desktop, open this link instead and click **Authenticate** on the
+`adaption` server:
+
+```
+hermes://mcp/install?name=adaption&config=eyJ1cmwiOiJodHRwczovL2FwaS5wcm9kLmFkYXB0aW9ubGFicy5haS9hcGkvdjEvbWNwP3NvdXJjZT1oZXJtZXMtcGx1Z2luIiwiaGVhZGVycyI6eyJYLUFkYXB0aW9uLVNvdXJjZSI6Imhlcm1lcy1wbHVnaW4ifSwiYXV0aCI6Im9hdXRoIiwib2F1dGgiOnsiY2xpZW50X2lkIjoiYWRhcHRpb24taGVybWVzLXBsdWdpbiJ9fQ
+```
+
+The `oauth` block is required: Adaption does not support dynamic client
+registration, which Hermes falls back to without it. If you set the server up
+this way before version 0.3.0 of the plugin, it keeps working; remove it with
+`hermes mcp remove adaption` to switch to the plugin's server.
 
 ### Local development
 
@@ -142,7 +153,7 @@ Re-run `rsync` and start a new session after every change.
 - **Augment** datasets with synthetic domain/general rows
 - **Translate** and **localize** dataset content
 - **Combine** multiple datasets
-- **Export** processed results
+- Get **export links** for processed results
 
 ### 🎯 Fine-tuning (5 tools)
 
@@ -178,19 +189,24 @@ Re-run `rsync` and start a new session after every change.
 
 ## What this plugin does on your machine
 
-- The plugin contains only skills, which are Markdown instructions. It ships
-  no code, hooks, shell commands, or background processes.
-- The Adaption MCP tools send requests to `api.prod.adaptionlabs.ai` with your
-  OAuth token or API key. Datasets you import or generate are processed by
+- It runs the pinned `mcp-remote@0.1.49` through `npx`, which downloads it
+  from npm on first use. On first sign-in it opens a browser and a local
+  callback port, and it stores the OAuth tokens under `~/.mcp-auth/`.
+- Every tool call goes to `api.prod.adaptionlabs.ai` and acts on your Adaption
+  account. The tool set is served by Adaption at run time and is not covered
+  by the pinned commit. Datasets you import or generate are processed by
   Adaption.
 - Adaptation, augmentation, translation, localization, dataset generation, and
-  AutoScientist training runs spend Adaption credits. The skills tell Hermes
-  to request a cost estimate before launching. This is guidance in the skill
-  instructions, not a check enforced by Hermes.
+  AutoScientist training runs spend Adaption credits. Hermes asks before each
+  of those calls (see [Approvals](#approvals)), and the skills tell Hermes to
+  request a cost estimate first.
+- The skills are Markdown instructions. The plugin ships no Python code, hooks,
+  or background processes beyond the `mcp-remote` bridge while a session runs.
 
 ## Requirements
 
-- Hermes Agent with Agent Plugins support (`hermes update` to get the latest)
+- Hermes Agent 0.21.6 or later (`hermes update` to get the latest)
+- Node.js 20.18.1 or later and npm, unless you connect without Node.js
 - An Adaption account
 
 ## Support

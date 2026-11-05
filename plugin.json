@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "adaption",
-  "version": "0.2.0",
-  "description": "Adaption skills for Hermes Agent — datasets, fine-tuning, and AutoScientist workflows powered by the Adaption MCP server",
+  "version": "0.3.0",
+  "description": "Adaption for Hermes Agent — the Adaption MCP server and skills for dataset management, fine-tuning, and AutoScientist workflows",
   "author": {
     "name": "Adaption",
     "email": "support@adaptionlabs.ai",
@@ -18,5 +18,14 @@
     "autoscientist",
     "mcp",
     "ai-training"
-  ]
+  ],
+  "extensions": {
+    "com.nousresearch.hermes": {
+      "servers": {
+        "adaption": {
+          "trust": "untrusted"
+        }
+      }
+    }
+  }
 }
