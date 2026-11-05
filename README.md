@@ -37,13 +37,7 @@ hermes plugins enable adaption
 
 ### Sign in
 
-Start a new session. The first time the server starts, your browser opens the
-Adaption sign-in page. Choose the organization and click **Authorize**. The
-token is kept and refreshed, so you sign in once.
-
-Hermes waits about a minute for the server to start. If you take longer to
-sign in, run `/reload-mcp` once you have authorized. To sign in ahead of time
-instead, run:
+Sign in once before your first session:
 
 ```bash
 npx -y -p mcp-remote@0.1.49 mcp-remote-client \
@@ -52,16 +46,41 @@ npx -y -p mcp-remote@0.1.49 mcp-remote-client \
   --static-oauth-client-info '{"client_id":"adaption-hermes-plugin"}'
 ```
 
-Run `skills_list` to see the installed Adaption skills.
+In PowerShell, run it on one line through `npx.cmd`, with the inner quotes
+escaped:
+
+```powershell
+npx.cmd -y -p mcp-remote@0.1.49 mcp-remote-client 'https://api.prod.adaptionlabs.ai/api/v1/mcp?source=hermes-plugin' --transport http-only --header X-Adaption-Source:hermes-plugin --static-oauth-client-info '{\"client_id\":\"adaption-hermes-plugin\"}'
+```
+
+Your browser opens the Adaption sign-in page. Choose the organization and
+click **Authorize**. The token is stored and refreshed, so the plugin's server
+connects without a browser from then on. Start a new session, or run
+`/reload-mcp` in a running one, and run `skills_list` to see the Adaption
+skills.
+
+If you skip this step, the server opens the sign-in page when a session
+starts, but Hermes stops waiting for it after about a minute. If that happens,
+run the command above, then `/reload-mcp`.
+
+To sign out or switch to another organization, delete the stored token and
+sign in again:
+
+```bash
+rm ~/.mcp-auth/mcp-remote-0.1.49/68a9ef231d47fe56f4f1b863f1349fa4_*
+```
 
 ### Approvals
 
-The plugin marks the server `untrusted`. Hermes runs the read-only tools
-(listing and inspecting datasets, runs, models, and domains) without asking,
-and asks before every tool that imports data or launches work: import,
-adaptation, augmentation, translation, localization, combining datasets,
-dataset generation, and AutoScientist runs. In cron jobs and other unattended
-runs, those tools are refused.
+The plugin marks the server `untrusted`, so Hermes asks before every tool the
+server does not mark read-only. Adaption marks the tools that list and inspect
+datasets, runs, models, and domains as read-only; they run without asking.
+Hermes asks before import, adaptation, augmentation, translation,
+localization, combining datasets, dataset generation, and AutoScientist runs.
+In cron jobs and other unattended runs, those tools are refused.
+
+Cost estimates use the same tools with `estimate: true`, so Hermes asks before
+the estimate and again before the launch.
 
 ### Headless use with an API key
 
@@ -79,9 +98,13 @@ paste the API key when it asks for a bearer token. Hermes stores it in your
 profile's `.env` as `MCP_ADAPTION_API_KEY`, not in `config.yaml`. To skip the
 prompt, set `MCP_ADAPTION_API_KEY` in that `.env` before running the command.
 
-A server named `adaption` in `config.yaml` replaces the plugin's server, so
-the skills keep working with the key. Add `trust: untrusted` to that entry to
-keep the approvals described above.
+A server named `adaption` in `config.yaml` replaces the plugin's server,
+including its approval setting, so the skills keep working with the key. To
+keep the approvals described above:
+
+```bash
+hermes config set mcp_servers.adaption.trust untrusted
+```
 
 ### Connecting without Node.js
 
@@ -130,7 +153,7 @@ Re-run `rsync` and start a new session after every change.
 - **Augment** datasets with synthetic domain/general rows
 - **Translate** and **localize** dataset content
 - **Combine** multiple datasets
-- **Export** processed results
+- Get **export links** for processed results
 
 ### 🎯 Fine-tuning (5 tools)
 
